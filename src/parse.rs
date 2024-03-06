@@ -12,11 +12,60 @@ pub enum Attribute {
     Double(f64),
 }
 
+impl Attribute {
+    pub fn as_integer(&self) -> Option<i64> {
+        match self {
+            Self::Byte(x) => Some(*x as i64),
+            Self::Short(x) => Some(*x as i64),
+            Self::Int(x) => Some(*x as i64),
+            Self::Long(x) => Some(*x),
+            _ => None,
+        }
+    }
+
+    pub fn as_real(&self) -> Option<f64> {
+        match self {
+            Self::Float(x) => Some(*x as f64),
+            Self::Double(x) => Some(*x),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        if let Self::Bool(x) = self {
+            Some(*x)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_string(&self) -> Option<&String> {
+        if let Self::String(x) = self {
+            Some(x)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Element {
     pub name: String,
     pub attributes: Vec<(String, Attribute)>,
     pub children: Vec<Element>,
+}
+
+impl Element {
+    pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
+        self.attributes
+            .iter()
+            .find(|attribute| attribute.0 == name)
+            .map(|attribute| &attribute.1)
+    }
+
+    pub fn get_child(&self, name: &str) -> Option<&Element> {
+        self.children.iter().find(|child| child.name == name)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -91,7 +140,7 @@ fn parse_element(
 
     let Some(&attribute_count) = bytes.get(*curr) else {
         return Err("Expected byte");
-    }; // Should this be a i8 or u8?
+    }; // TODO: Should this be a i8 or u8?
     *curr += 1;
 
     let mut attributes = vec![];
