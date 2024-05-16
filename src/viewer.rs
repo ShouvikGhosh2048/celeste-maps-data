@@ -1,42 +1,13 @@
-use crate::{parse::Map, statistics::bounding_box};
+use crate::{
+    parse::Map,
+    statistics::{bounding_box, room_details},
+};
 
 use raylib::prelude::*;
 
-struct RoomDetail<'a> {
-    x: i32,
-    y: i32,
-    width: i32,
-    height: i32,
-    tiles: &'a str,
-}
-
 pub fn view_map(map: &Map) {
-    let rooms = map.root.get_child("levels").unwrap();
     let bounds = bounding_box(map).unwrap();
-
-    let mut room_details = vec![];
-    for room in &rooms.children {
-        assert!(room.name == "level");
-
-        let x = room.get_attribute("x").unwrap().as_integer().unwrap() as i32;
-        let y = room.get_attribute("y").unwrap().as_integer().unwrap() as i32;
-        let width = room.get_attribute("width").unwrap().as_integer().unwrap() as i32;
-        let height = room.get_attribute("height").unwrap().as_integer().unwrap() as i32;
-        let solids = room.get_child("solids").unwrap();
-        let tiles = solids
-            .get_attribute("innerText")
-            .unwrap()
-            .as_string()
-            .unwrap();
-
-        room_details.push(RoomDetail {
-            x,
-            y,
-            width,
-            height,
-            tiles,
-        });
-    }
+    let room_details = room_details(map).unwrap();
 
     let mut camera = Camera2D {
         zoom: 1.0,
@@ -93,10 +64,10 @@ pub fn view_map(map: &Map) {
         // Draw room background first incase of overlap.
         for room in &room_details {
             d_camera.draw_rectangle(
-                room.x,
-                room.y,
-                room.width,
-                room.height,
+                room.x as i32,
+                room.y as i32,
+                room.width as i32,
+                room.height as i32,
                 Color::new(200, 200, 200, 255),
             );
         }
@@ -112,7 +83,7 @@ pub fn view_map(map: &Map) {
                 }
 
                 if ch != '0' {
-                    d_camera.draw_rectangle(draw_x, draw_y, 8, 8, Color::BLACK);
+                    d_camera.draw_rectangle(draw_x as i32, draw_y as i32, 8, 8, Color::BLACK);
                 }
                 draw_x += 8;
             }
